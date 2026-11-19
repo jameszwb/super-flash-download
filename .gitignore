@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtualenv
+venv/
+.venv/
+env/
+
+# Runtime state — never commit
+history.json
+settings.json
+*.sfd
+*.xy
+*.sfd.tmp
+
+# Downloaded artifacts / scratch files
+*.bin
+*.part
+dl_test/
+bt_test_dl/
+downloads/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,12 @@
+# Super Flash Download — dependencies
+#
+# The engine (xyengine.py), the connector (xyc.py) and the standalone
+# downloader (xy.py) use the Python standard library only. You do NOT need
+# this file to use them.
+
+# GUI only
+PySide6>=6.6.0
+
+# Optional: BitTorrent / magnet links.
+# Wheels ship for Python 3.13; other versions may need a source build.
+libtorrent>=2.0.9
