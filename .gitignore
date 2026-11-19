@@ -29,3 +29,8 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec

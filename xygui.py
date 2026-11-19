@@ -40,7 +40,15 @@ try:
 except ImportError:
     HAS_BT = False
 
-APP_DIR = os.path.dirname(os.path.abspath(__file__))
+# PyInstaller onefile: __file__ points into a temp dir that is deleted on exit.
+# RES_DIR holds bundled assets (_MEIPASS); APP_DIR holds user data (next to the exe).
+if getattr(sys, "frozen", False):
+    APP_DIR = os.path.dirname(os.path.abspath(sys.executable))
+    RES_DIR = getattr(sys, "_MEIPASS", APP_DIR)
+else:
+    APP_DIR = os.path.dirname(os.path.abspath(__file__))
+    RES_DIR = APP_DIR
+
 HISTORY_PATH = os.path.join(APP_DIR, "history.json")
 SETTINGS_PATH = os.path.join(APP_DIR, "settings.json")
 API_PORT = 16901
@@ -430,7 +438,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Super Flash Download")
         self.resize(1060, 700)
         self.setMinimumSize(880, 560)
-        _ico = os.path.join(APP_DIR, "sfd.ico")
+        _ico = os.path.join(RES_DIR, "sfd.ico")
         if os.path.exists(_ico):
             self.setWindowIcon(QIcon(_ico))
 
@@ -1132,7 +1140,9 @@ class MainWindow(QMainWindow):
         limit = int(body.get("limit") or 0)
         proxy = (body.get("proxy") or "").strip() or None
         mirrors = [str(m).strip() for m in (body.get("mirrors") or []) if m and str(m).strip()]
-        auto_name = bool(body.get("auto_name"))
+        # API 的 dest 语义是"保存目录"，文件名由服务器 Content-Disposition 决定。
+        # 这里必须默认 True：否则引擎会把目录当成文件路径 open → Permission denied。
+        auto_name = bool(body.get("auto_name", True))
         if url.startswith("magnet:") or (url.endswith(".torrent") and os.path.isfile(url)):
             if not HAS_BT:
                 return {"ok": False, "error": "当前解释器缺 libtorrent"}
@@ -1190,10 +1200,17 @@ def _acquire_single_instance() -> bool:
     互斥体随进程退出由内核回收，无需显式 CloseHandle。"""
     import ctypes
     k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.OpenMutexW.restype = ctypes.c_void_p
+    k32.OpenMutexW.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_wchar_p]
     k32.CreateMutexW.restype = ctypes.c_void_p
     k32.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_wchar_p]
-    k32.CreateMutexW(None, False, "SFD_SingleInstance_Mutex")
-    return ctypes.get_last_error() != 183   # 183 = ERROR_ALREADY_EXISTS
+    SYNCHRONIZE = 0x00100000
+    # 不能用 CreateMutexW + get_last_error()==183 判断：PyInstaller onefile 下
+    # ctypes.get_last_error() 读不到真实错误码（实测第二实例被误判成第一实例）。
+    # 改为先 OpenMutexW 探测，能打开就说明已有实例在跑，不依赖 last error。
+    if k32.OpenMutexW(SYNCHRONIZE, False, "SFD_SingleInstance_Mutex"):
+        return False          # 句柄随进程退出自动回收
+    return bool(k32.CreateMutexW(None, False, "SFD_SingleInstance_Mutex"))
 
 
 def main() -> int:
@@ -1216,7 +1233,7 @@ def main() -> int:
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setStyleSheet(STYLE)
-    _ico = os.path.join(APP_DIR, "sfd.ico")
+    _ico = os.path.join(RES_DIR, "sfd.ico")
     if os.path.exists(_ico):
         app.setWindowIcon(QIcon(_ico))
     w = MainWindow()
