@@ -64,7 +64,7 @@ STYLE = """
 QWidget { background: #0d1117; color: #e6edf3; font-size: 13px; }
 #root { background: #0d1117; }
 #sidebar { background: #010409; border-right: 1px solid #21262d; }
-#brand { font-size: 14px; font-weight: 800; color: #e6edf3; background: transparent; }
+#brand { font-size: 13px; font-weight: 800; color: #e6edf3; background: transparent; }
 #brandSub { color: #8b949e; font-size: 10px; background: transparent; }
 QListWidget#nav { background: transparent; border: none; outline: none; padding: 4px 0; }
 QListWidget#nav::item { color: #8b949e; border-radius: 8px; padding: 9px 12px; margin: 2px 0; }
@@ -168,6 +168,41 @@ STATE_META = {
     "error": (BAD, "失败"),
     "interrupted": (WARN, "已中断"),
 }
+
+
+class ElidedLabel(QLabel):
+    """宽度不够时自动加省略号的 QLabel。
+
+    普通 QLabel 超宽是硬裁剪：文字直接被切掉（"Super Flash Download" 变 "Super Flash Dou"），
+    侧栏这类固定窄容器里非常难看。这里记住全文、按当前宽度做 elidedText，
+    resize / show 时重算，任何字体或 DPI 下都不会再硬切。悬停可看全名。
+    """
+
+    def __init__(self, text: str, **kw):
+        super().__init__(text, **kw)
+        self._full = text
+        self.setToolTip(text)
+
+    def setText(self, text: str) -> None:      # type: ignore[override]
+        self._full = text
+        self.setToolTip(text)
+        self._refresh()
+
+    def showEvent(self, ev) -> None:
+        super().showEvent(ev)
+        self._refresh()
+
+    def resizeEvent(self, ev) -> None:
+        super().resizeEvent(ev)
+        self._refresh()
+
+    def _refresh(self) -> None:
+        w = self.width()
+        if w <= 0 or not self._full:
+            return
+        elided = self.fontMetrics().elidedText(self._full, Qt.ElideRight, w)
+        if super().text() != elided:
+            super().setText(elided)
 
 
 class SpeedSpark(QWidget):
@@ -471,14 +506,12 @@ class MainWindow(QMainWindow):
         h.setSpacing(0)
 
         side = QFrame(objectName="sidebar")
-        side.setFixedWidth(222)
+        side.setFixedWidth(200)
         sv = QVBoxLayout(side)
         sv.setContentsMargins(14, 16, 14, 14)
         sv.setSpacing(8)
-        brand = QLabel("🌧 Super Flash Download", objectName="brand")
-        brand.setWordWrap(True)
-        sv.addWidget(brand)
-        sv.addWidget(QLabel("无广告 · 多线程 · 纯本地", objectName="brandSub"))
+        sv.addWidget(ElidedLabel("🌧 Super Flash Download", objectName="brand"))
+        sv.addWidget(ElidedLabel("无广告下载 · 多线程 · 断点续传", objectName="brandSub"))
         sv.addSpacing(8)
         self.nav = QListWidget(objectName="nav")
         for key, label in self.NAV:
