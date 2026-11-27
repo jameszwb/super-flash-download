@@ -268,10 +268,20 @@ class BlockQueue:
 
 # ============ 限速器 ============
 class RateLimiter:
+    """全局限速：一个任务的所有 worker 共享同一个 bps 额度。
+
+    旧实现是每个 worker 各睡 n/bps，于是总速度 = 线程数 × 限额
+    （设 1MB/s、16 线程实际跑出 ~16MB/s）。这里改成按时间线串行记账：
+    每次放行都把下一个放行时刻往后推 n/bps，多线程并行等待的时刻互不重叠，
+    总吞吐落在 bps 附近。
+    """
+
     def __init__(self, bytes_per_sec: int):
         self.bps = bytes_per_sec
         self.event = threading.Event()
         self.event.set()
+        self._lock = threading.Lock()
+        self._next = 0.0
 
     def pause(self) -> None:
         self.event.clear()
@@ -283,7 +293,19 @@ class RateLimiter:
         self.event.wait()
         if self.bps <= 0:
             return
-        time.sleep(n / self.bps)
+        with self._lock:
+            now = time.monotonic()
+            if self._next < now:
+                self._next = now        # 空闲后不累积额度，避免恢复瞬间突发
+            self._next += n / self.bps
+            delay = self._next - now
+        # 限速低时单次等待可达数秒：分片睡眠，每片后检查一次暂停
+        while delay > 0:
+            step = min(delay, 0.2)
+            time.sleep(step)
+            delay -= step
+            if not self.event.is_set():
+                self.event.wait()
 
 
 # ============ 下载任务 ============
