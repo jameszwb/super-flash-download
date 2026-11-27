@@ -1019,7 +1019,13 @@ class MainWindow(QMainWindow):
                     with outer._api_lock:
                         outer._api_cmds.append(("add", body))
                     res = outer._api_wait_result()
-                    self._send(res or {"ok": False, "error": "timeout"}, 200 if res and res.get("ok") else 503)
+                    if res is None:
+                        # 命令已入队，GUI 稍后一定会执行它 —— 这里报失败会让
+                        # 客户端重试，同一个文件就变成两个任务。202 = 已接受。
+                        self._send({"ok": True, "pending": True,
+                                    "hint": "任务已入队，稍后用 GET /tasks 确认"}, 202)
+                    else:
+                        self._send(res, 200 if res.get("ok") else 400)
                     return
                 if u.path.endswith("/pause"):
                     tid = int(u.path.strip("/").split("/")[1])
