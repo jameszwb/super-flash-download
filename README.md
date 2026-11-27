@@ -1,6 +1,16 @@
 # Super Flash Download
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776ab.svg)](https://www.python.org/)
+[![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4.svg)](#requirements)
+[![Latest release](https://img.shields.io/github/v/release/jameszwb/super-flash-download?color=2f81f7)](https://github.com/jameszwb/super-flash-download/releases/latest)
+[![GitHub stars](https://img.shields.io/github/stars/jameszwb/super-flash-download?style=social)](https://github.com/jameszwb/super-flash-download/stargazers)
+
+![Super Flash Download main window: five concurrent tasks, live speed curve, per-task progress](docs/screenshot.png)
+
 A multi-connection downloader for Windows — work-stealing engine, byte-precise resume, and a local REST API that lets scripts or AI agents drive the GUI.
+
+**[⬇ Download the standalone .exe](https://github.com/jameszwb/super-flash-download/releases/latest)** — no Python required. Or run from source: `pip install PySide6 && python xygui.py`.
 
 **The engine has zero third-party dependencies.** It is pure Python standard library.
 The GUI needs PySide6. BitTorrent support is optional and needs libtorrent (Python 3.13).
@@ -40,6 +50,43 @@ engine behind a proprietary binary. This one is ~2,600 lines you can read in an 
 | **BitTorrent** | Magnet links and `.torrent` files via libtorrent, same task model as HTTP |
 | **Limits** | Five speed presets from 1 MB/s to unlimited |
 | **Single instance** | Windows named mutex; a second launch exits with code 3 and raises the existing window |
+
+---
+
+## How it compares
+
+If you are weighing this against aria2, Internet Download Manager, Motrix or Free Download
+Manager, the differences that actually matter are these:
+
+| | **Super Flash Download** | aria2 | Internet Download Manager | Motrix |
+|---|---|---|---|---|
+| **GUI** | ✔ native PySide6 | ✘ CLI only (third-party GUIs exist) | ✔ | ✔ Electron |
+| **Open source** | ✔ MIT | ✔ GPL-2.0 | ✘ closed, paid | ✔ MIT |
+| **Ads / account / telemetry** | none | none | activation, closed | none |
+| **Engine you can read** | ✔ ~760 lines, pure stdlib | ✔ C++, large | ✘ binary | bundles aria2 |
+| **Local REST API for scripts / AI agents** | ✔ `127.0.0.1:16901` | ✔ JSON-RPC | ✘ | ✘ |
+| **Byte-exact resume after a kill** | ✔ `.sfd` range journal | ✔ | ✔ | ✔ |
+| **BitTorrent / magnet** | ✔ optional | ✔ | ✘ | ✔ |
+| **Footprint** | 0 deps for the engine | ~10 MB binary | closed installer | ~100 MB Electron |
+| **Platform** | Windows 10/11 | cross-platform | Windows | cross-platform |
+
+In short: aria2's engine with a real desktop UI, IDM's resume semantics without the licence
+key, and an HTTP API so an agent can queue downloads instead of you clicking.
+
+---
+
+## Who this is for
+
+- You want a **multi-threaded downloader** with a GUI on Windows and no ads, no account, no
+  background updater phoning home.
+- You script downloads and want a **local REST API** (`curl` / Python / an LLM agent) instead
+  of marionette-ing a browser.
+- You want to *read* the engine before trusting it with a 20 GB file, and fix it yourself
+  when something breaks.
+
+Search terms this project legitimately answers: `multi-threaded downloader`, `aria2 GUI`,
+`IDM alternative`, `resume download manager`, `magnet link downloader`, `portable download
+manager for Windows`, `download manager REST API`.
 
 ---
 

@@ -1,7 +1,17 @@
 # Super Flash Download · 高速多线程下载器
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776ab.svg)](https://www.python.org/)
+[![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4.svg)](#安装)
+[![Latest release](https://img.shields.io/github/v/release/jameszwb/super-flash-download?color=2f81f7)](https://github.com/jameszwb/super-flash-download/releases/latest)
+[![GitHub stars](https://img.shields.io/github/stars/jameszwb/super-flash-download?style=social)](https://github.com/jameszwb/super-flash-download/stargazers)
+
+![Super Flash Download 主界面：5 个并发任务、实时速度曲线、单任务进度](docs/screenshot.png)
+
 Windows 平台的多线程下载工具。引擎纯 Python 标准库实现（零第三方依赖），
 GUI 用 PySide6，并内置本机 REST API —— 脚本或 AI 助手可以直接驱动界面。
+
+**[⬇ 直接下载单文件 exe](https://github.com/jameszwb/super-flash-download/releases/latest)** —— 不需要装 Python。也可从源码跑：`pip install PySide6 && python xygui.py`。
 
 > 模块文件名里的 `xy` 是历史内部代号，产品名是 **Super Flash Download**。
 > 保留该前缀是为了不动 import 关系与提交历史。
@@ -35,6 +45,39 @@ GUI 用 PySide6，并内置本机 REST API —— 脚本或 AI 助手可以直�
 | BT | 磁力链 / `.torrent`，走 libtorrent，与 HTTP 任务同一套交互 |
 | 限速 | 1MB/s ~ 不限速五档 |
 | 单实例 | Windows 命名互斥体，第二个实例退出码 3 并唤出已有窗口 |
+
+---
+
+## 和同类工具比
+
+如果正在 aria2、IDM、Motrix、FDM 之间选，真正有差别的是这几项：
+
+| | **Super Flash Download** | aria2 | IDM | Motrix |
+|---|---|---|---|---|
+| **GUI** | ✔ PySide6 原生 | ✘ 只有命令行（有第三方壳） | ✔ | ✔ Electron |
+| **开源** | ✔ MIT | ✔ GPL-2.0 | ✘ 闭源收费 | ✔ MIT |
+| **广告 / 账号 / 遥测** | 全无 | 全无 | 需要激活，闭源 | 全无 |
+| **引擎可读** | ✔ ~760 行纯标准库 | ✔ C++，体量大 | ✘ 二进制 | 内置 aria2 |
+| **本机 REST API（脚本 / AI 直驱）** | ✔ `127.0.0.1:16901` | ✔ JSON-RPC | ✘ | ✘ |
+| **强杀后续传（字节级）** | ✔ `.sfd` 区间日志 | ✔ | ✔ | ✔ |
+| **BT / 磁力** | ✔ 可选 | ✔ | ✘ | ✔ |
+| **体积** | 引擎零依赖 | ~10 MB | 闭源安装包 | ~100 MB Electron |
+| **平台** | Windows 10/11 | 跨平台 | Windows | 跨平台 |
+
+一句话：aria2 的引擎 + 正经桌面界面，IDM 的续传语义但不要激活码，
+再加一个 HTTP API —— 让 agent 去排队下载，而不是你自己点。
+
+---
+
+## 适合谁用
+
+- 要一个 Windows 上带界面的**多线程下载器**，不要广告、不要账号、不要后台偷偷联网校验。
+- 下载要能被脚本驱动，想要一个**本机 REST API**（curl / Python / LLM agent），
+  而不是用浏览器自动化去点按钮。
+- 想先把引擎**读完**再让它下载 20 GB 的东西，出问题能自己改。
+
+对应的搜索词（这个项目确实解决的问题）：多线程下载器、aria2 界面、IDM 替代、
+断点续传下载、磁力链接下载、Windows 免安装下载器、下载管理器 REST API。
 
 ---
 

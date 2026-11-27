@@ -64,7 +64,7 @@ STYLE = """
 QWidget { background: #0d1117; color: #e6edf3; font-size: 13px; }
 #root { background: #0d1117; }
 #sidebar { background: #010409; border-right: 1px solid #21262d; }
-#brand { font-size: 17px; font-weight: 800; color: #e6edf3; background: transparent; }
+#brand { font-size: 14px; font-weight: 800; color: #e6edf3; background: transparent; }
 #brandSub { color: #8b949e; font-size: 10px; background: transparent; }
 QListWidget#nav { background: transparent; border: none; outline: none; padding: 4px 0; }
 QListWidget#nav::item { color: #8b949e; border-radius: 8px; padding: 9px 12px; margin: 2px 0; }
@@ -471,12 +471,14 @@ class MainWindow(QMainWindow):
         h.setSpacing(0)
 
         side = QFrame(objectName="sidebar")
-        side.setFixedWidth(190)
+        side.setFixedWidth(222)
         sv = QVBoxLayout(side)
         sv.setContentsMargins(14, 16, 14, 14)
         sv.setSpacing(8)
-        sv.addWidget(QLabel("🌧 Super Flash Download", objectName="brand"))
-        sv.addWidget(QLabel("Super Flash Download · 无广告下载", objectName="brandSub"))
+        brand = QLabel("🌧 Super Flash Download", objectName="brand")
+        brand.setWordWrap(True)
+        sv.addWidget(brand)
+        sv.addWidget(QLabel("无广告 · 多线程 · 纯本地", objectName="brandSub"))
         sv.addSpacing(8)
         self.nav = QListWidget(objectName="nav")
         for key, label in self.NAV:
@@ -947,6 +949,8 @@ class MainWindow(QMainWindow):
         self.stat_cards["speed"].setText(fmt_speed(total_bps))
         self.stat_cards["tasks"].setText(str(running))
         self.stat_cards["done"].setText(str(done))
+        total_bytes = sum(t.get("done") or 0 for t in self.tasks.values())
+        self.stat_cards["bytes"].setText(fmt_size(total_bytes))
         self.spark.push(total_bps)
 
     # ================= 连接器 API（127.0.0.1:16901） =================
